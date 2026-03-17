@@ -6,11 +6,11 @@ services:
       - "1883:1883"
       - "8883:8883"
     volumes:
-      - C:/Program Files/Mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:z
-      - C:/mqtt-pki/mosquitto/data:/mosquitto/data
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:z
+      - ./mosquitto/data:/mosquitto/data
       - ./mosquitto/certs:/etc/mosquitto/certs
-      - C:/mqtt-pki/mosquitto/passwd:/etc/mosquitto/passwd
-      - C:/mqtt-pki/mosquitto/logs:/mosquitto/logs
+      - ./mosquitto/passwd:/etc/mosquitto/passwd
+      - ./mosquitto/logs:/mosquitto/logs
 
   influxdb:
     container_name: influxdb
