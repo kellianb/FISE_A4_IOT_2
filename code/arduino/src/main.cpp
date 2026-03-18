@@ -10,7 +10,7 @@
 AirQualitySensor air_quality_sensor(airQualitySensorPin, stdAirQualityVoltage);
 BmeSensor bme_sensor;
 
-MQTTCommunication mqttClient;
+MQTTCommunication mqttClient(true);
 
 // Sensor values 
 BmeValues v_avg;

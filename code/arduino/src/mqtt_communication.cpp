@@ -4,6 +4,13 @@ MQTTCommunication::MQTTCommunication() : mqttClient(wifiClient){
     // Le constructeur initialise le client MQTT avec le client WiFi
 }
 
+MQTTCommunication::MQTTCommunication(bool useSSL) : mqttClient(wifiSSLClient), _ssl(useSSL){
+    // Le constructeur initialise le client MQTT avec le client WiFi
+    if (_ssl) {
+        wifiSSLClient.setCACert(rootCA);
+    }
+}
+
 
 // Initialize WiFi and MQTT connections
 
@@ -35,12 +42,9 @@ void MQTTCommunication::setupWifi(){
   delay(3000);
   // récupérer l'heure NTP
   
-  long epoch = WiFi.getTime();  // secondes depuis 1970
-  if (epoch == 0) {
-    Serial.println("Erreur récupération NTP !");
-  } else {
-    Serial.print("Timestamp NTP : ");
-    Serial.println(epoch);
+  while (WiFi.getTime() < 100000) {
+    Serial.println("Waiting for valid time...");
+    delay(1000);
   }
   delay(1000);
 }
@@ -60,6 +64,7 @@ void MQTTCommunication::setupInitialMQTT(){
   Serial.print("Client ID MQTT: "); Serial.println(clientId);
 
   mqttClient.setId(clientId);
+
   mqttClient.setUsernamePassword(mqtt_username, mqtt_password); // Set MQTT credentials if needed
   mqttClient.setCleanSession(false); // Keep session to receive messages sent while offline
 
@@ -70,8 +75,9 @@ void MQTTCommunication::setupInitialMQTT(){
 void MQTTCommunication::setupMQTT(){
     Serial.println("Connecting MQTT...");
     while (!mqttClient.connect(broker, port)) {
-    Serial.print(".");
-    delay(1000);
+        Serial.print("MQTT error: ");
+        Serial.println(mqttClient.connectError());
+        delay(2000);
     }
     Serial.println("MQTT connection established !");
 
@@ -127,18 +133,17 @@ void MQTTCommunication::SendHumidity(unsigned long timestamp, float humidity) {
     char humidityTopic[50];
     snprintf(humidityTopic, sizeof(humidityTopic), "%s/humidity", topic_location);
 
+    char* payload = new char[256];
+
+    snprintf(payload,
+        sizeof(payload),
+        "{\"sensor-id\":\"%s\",\"timestamp\":%d,\"humidity\":%.2f}", sensor_id, timestamp, humidity);
+
     // Publish the humidity value to the MQTT broker
     mqttClient.poll();
 
     mqttClient.beginMessage(humidityTopic, false, 0);
-    mqttClient.print('<');
-    mqttClient.print("Sensor:");
-    mqttClient.print(sensor_id);
-    mqttClient.print(";Humidity:");
-    mqttClient.print(humidity);
-    mqttClient.print(";Timestamp:");
-    mqttClient.print(timestamp);
-    mqttClient.print('>');
+    mqttClient.print(payload);
     mqttClient.endMessage();
     Serial.println("Humidity message sent!");
 }
@@ -148,18 +153,17 @@ void MQTTCommunication::SendTemperature(unsigned long timestamp, float temperatu
     char temperatureTopic[50];
     snprintf(temperatureTopic, sizeof(temperatureTopic), "%s/temperature", topic_location);
 
+    char* payload = new char[256];
+
+    snprintf(payload,
+        sizeof(payload),
+        "{\"sensor-id\":\"%s\",\"timestamp\":%d,\"temperature\":%.2f}", sensor_id, timestamp, temperature);
+    
     // Publish the temperature value to the MQTT broker
     mqttClient.poll();
 
     mqttClient.beginMessage(temperatureTopic, false, 0);
-    mqttClient.print('<');
-    mqttClient.print("Sensor:");
-    mqttClient.print(sensor_id);
-    mqttClient.print(";Temperature:");
-    mqttClient.print(temperature);
-    mqttClient.print(";Timestamp:");
-    mqttClient.print(timestamp);
-    mqttClient.print('>');
+    mqttClient.print(payload);
     mqttClient.endMessage();
     Serial.println("Temperature message sent!");
 }
@@ -169,62 +173,40 @@ void MQTTCommunication::SendPressure(unsigned long timestamp, float pressure) {
     char pressureTopic[50];
     snprintf(pressureTopic, sizeof(pressureTopic), "%s/pressure", topic_location);
 
+    char* payload = new char[256];
+
+    snprintf(payload,
+        sizeof(payload),
+        "{\"sensor-id\":\"%s\",\"timestamp\":%d,\"pressure\":%.2f}", sensor_id, timestamp, pressure);
+    
+
     // Publish the pressure value to the MQTT broker
     mqttClient.poll();
 
     mqttClient.beginMessage(pressureTopic, false, 0);
-    mqttClient.print('<');
-    mqttClient.print("Sensor:");
-    mqttClient.print(sensor_id);
-    mqttClient.print(";Pressure:");
-    mqttClient.print(pressure);
-    mqttClient.print(";Timestamp:");
-    mqttClient.print(timestamp);
-    mqttClient.print('>');
+    mqttClient.print(payload);
     mqttClient.endMessage();
     Serial.println("Pressure message sent!");
 }
 
-void MQTTCommunication::SendAirQuality(unsigned long timestamp, int air_quality) {
+void MQTTCommunication::SendAirQuality(unsigned long timestamp, int air_quality, int air_quality_category) {
     // Set the topic to "cesi-strasbourg/room-1" for air quality messages
     char airQualityTopic[50];
     snprintf(airQualityTopic, sizeof(airQualityTopic), "%s/airquality", topic_location);
 
+    char* payload = new char[256];
+
+    snprintf(payload,
+        sizeof(payload),
+        "{\"sensor-id\":\"%s\",\"timestamp\":%d,\"airquality\":%.2f,\"airqualitycategory\":%d}", sensor_id, timestamp, air_quality, air_quality_category);
+    
     // Publish the air quality value to the MQTT broker
     mqttClient.poll();
 
     mqttClient.beginMessage(airQualityTopic, false, 1);
-    mqttClient.print('<');
-    mqttClient.print("Sensor:");
-    mqttClient.print(sensor_id);
-    mqttClient.print(";AirQuality:");
-    mqttClient.print(air_quality);
-    mqttClient.print(";Timestamp:");
-    mqttClient.print(timestamp);
-    mqttClient.print('>');
+    mqttClient.print(payload);
     mqttClient.endMessage();
     Serial.println("Air quality message sent!");
-}
-
-void MQTTCommunication::SendAirQualityCategory(unsigned long timestamp, int air_quality_category) {
-    // Set the topic to "cesi-strasbourg/room-1" for air quality messages
-    char airQualityCategoryTopic[50];
-    snprintf(airQualityCategoryTopic, sizeof(airQualityCategoryTopic), "%s/airquality", topic_location);
-
-    // Publish the air quality value to the MQTT broker
-    mqttClient.poll();
-
-    mqttClient.beginMessage(airQualityCategoryTopic, false, 1);
-    mqttClient.print('<');
-    mqttClient.print("Sensor:");
-    mqttClient.print(sensor_id);
-    mqttClient.print(";AirQualityCategory:");
-    mqttClient.print(air_quality_category);
-    mqttClient.print(";Timestamp:");
-    mqttClient.print(timestamp);
-    mqttClient.print('>');
-    mqttClient.endMessage();
-    Serial.println("Air quality category message sent!");
 }
 
 
@@ -235,51 +217,31 @@ void MQTTCommunication::sendDataFrames(BmeValues bme_values, int air_quality_val
     SendTemperature(sending_timestamp, bme_values.temperature);
     SendHumidity(sending_timestamp, bme_values.humidity);
     SendPressure(sending_timestamp, bme_values.pressure);
-    SendAirQuality(sending_timestamp, air_quality_value);
-    SendAirQualityCategory(sending_timestamp, air_quality_category);
-
+    SendAirQuality(sending_timestamp, air_quality_value, air_quality_category);
+    
     displayDataFrames(sending_timestamp, bme_values, air_quality_value, air_quality_category);
 }
 
 
-
-
-
 // ------------------------ MQTT display function ---------------------------
 void MQTTCommunication::displayDataFrames(unsigned long timestamp, BmeValues bme_values, int air_quality_value, int air_quality_category) {
-  Serial.print("<Sensor:");
-  Serial.print(sensor_id);
-  Serial.print(";Temperature:");
-  Serial.print(bme_values.temperature);
-  Serial.print(";Timestamp:");
-  Serial.print(timestamp);
-  Serial.println('>');
-  Serial.print("<Sensor:");
-  Serial.print(sensor_id);
-  Serial.print(";Humidity:");
-  Serial.print(bme_values.humidity);
-  Serial.print(";Timestamp:");
-  Serial.print(timestamp);
-  Serial.println('>');
-  Serial.print("<Sensor:");
-  Serial.print(sensor_id);
-  Serial.print(";Pressure:");
-  Serial.print(bme_values.pressure);
-  Serial.print(";Timestamp:");
-  Serial.print(timestamp);
-  Serial.println('>');
-  Serial.print("<Sensor:");
-  Serial.print(sensor_id);
-  Serial.print(";AirQuality:");
-  Serial.print(air_quality_value);
-  Serial.print(";Timestamp:");
-  Serial.print(timestamp);
-  Serial.println('>');
-  Serial.print("<Sensor:");
-  Serial.print(sensor_id);
-  Serial.print(";AirQualityCategory:");
-  Serial.print(air_quality_category);
-  Serial.print(";Timestamp:");
-  Serial.print(timestamp);
-  Serial.println('>');
+    char airQualityTopic[50];
+    
+    snprintf(airQualityTopic, sizeof(airQualityTopic), "%s/airquality", topic_location);
+
+    char* payload = new char[500];
+
+    snprintf(payload,
+        sizeof(payload),
+        "{\"sensor-id\":\"%s\",\"timestamp\":%lu,\"humidity\":%.2f}\n"
+        "{\"sensor-id\":\"%s\",\"timestamp\":%lu,\"temperature\":%.2f}\n"
+        "{\"sensor-id\":\"%s\",\"timestamp\":%lu,\"pressure\":%.2f}\n"
+        "{\"sensor-id\":\"%s\",\"timestamp\":%lu,\"airquality\":%d,\"airqualitycategory\":%d}",
+        sensor_id, timestamp, bme_values.humidity,
+        sensor_id, timestamp, bme_values.temperature,
+        sensor_id, timestamp, bme_values.pressure,
+        sensor_id, timestamp, air_quality_value, air_quality_category);
+
+    
+    Serial.print(payload);
 }

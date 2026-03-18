@@ -11,6 +11,7 @@
 class MQTTCommunication {
     public:
         MQTTCommunication();
+        MQTTCommunication(bool useSSL);
         void begin();
         void setupWifi();
         void setupInitialMQTT();
@@ -22,12 +23,12 @@ class MQTTCommunication {
         void SendTemperature(unsigned long timestamp, float temperature);
         void SendHumidity(unsigned long timestamp, float humidity);
         void SendPressure(unsigned long timestamp, float pressure);
-        void SendAirQuality(unsigned long timestamp, int air_quality);
-        void SendAirQualityCategory(unsigned long timestamp, int air_quality_category);
-        void displayDataFrames(unsigned long timestamp, BmeValues bme_values, int air_quality_value, int air_quality_category);
+        void SendAirQuality(unsigned long timestamp, int air_quality, int air_quality_category);
+        void displayDataFrames( unsigned long timestamp, BmeValues bme_values, int air_quality, int air_quality_category);
 
     private:
         char clientId[32]; // tableau pour stocker l'ID MQTT
+        bool _ssl = false;
         WiFiClient wifiClient;
         WiFiSSLClient wifiSSLClient; //later with CA certificate for TLS
         MqttClient mqttClient;
