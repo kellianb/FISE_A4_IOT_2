@@ -10,7 +10,7 @@
 AirQualitySensor air_quality_sensor(airQualitySensorPin, stdAirQualityVoltage);
 BmeSensor bme_sensor;
 
-MQTTCommunication mqttClient(true);
+MQTTCommunication mqttClient(false);
 
 // Sensor values 
 BmeValues v_avg;
@@ -113,10 +113,14 @@ void loop() {
   avgDataCount(&v, &air_quality);
 
   // Check statement of air quality
+  Serial.println(air_quality);
   int statement = air_quality_sensor.getStatement(air_quality);
 
   // Send MQTT on new statement and alert if quality is very bad (force signal)
   if (statement != current_statement) {
+    Serial.print("Air quality statement: ");
+    Serial.println(air_quality_sensor.getStatementMessage(statement));
+
     if (statement == AirQualitySensor::FORCE_SIGNAL) {
       last_buzzer_millis = millis();
       soundBuzzer();
@@ -126,9 +130,6 @@ void loop() {
     current_statement_message = air_quality_sensor.getStatementMessage(statement);
     sendMqtt(true, air_quality);
   }
-
-  Serial.print("Air quality statement: ");
-  Serial.println(air_quality_sensor.getStatementMessage(statement));
   
 
   // Send data to MQTT broker every 5 minutes - 1 minute for demo and testing

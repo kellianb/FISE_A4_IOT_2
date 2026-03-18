@@ -4,11 +4,8 @@ MQTTCommunication::MQTTCommunication() : mqttClient(wifiClient){
     // Le constructeur initialise le client MQTT avec le client WiFi
 }
 
-MQTTCommunication::MQTTCommunication(bool useSSL) : mqttClient(wifiSSLClient), _ssl(useSSL){
+MQTTCommunication::MQTTCommunication(bool useSSL) : mqttClient(wifiClient), _ssl(useSSL){
     // Le constructeur initialise le client MQTT avec le client WiFi
-    if (_ssl) {
-        wifiSSLClient.setCACert(rootCA);
-    }
 }
 
 
@@ -25,17 +22,23 @@ void MQTTCommunication::begin() {
 
 
 
-
+int wifiStatus = WL_IDLE_STATUS;
 // ------------------ Setup communications ---------------------------
 
 void MQTTCommunication::setupWifi(){
-  while (WiFi.begin(ssid, password) != WL_CONNECTED) {
-    delay(1000);
+
+  WiFi.config(IPAddress(LOCAL_IP));
+
+  while (wifiStatus != WL_CONNECTED) {
     Serial.print(".");
+    // Connect to WPA/WPA2 network:
+    wifiStatus = WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+
+    delay(1000);
   }
 
   delay(2000);
-  Serial.println("\nWiFi connecté !");
+  Serial.println("\nWiFi connected !");
   Serial.print("IP: ");
   Serial.println(WiFi.localIP());
 
@@ -47,6 +50,10 @@ void MQTTCommunication::setupWifi(){
     delay(1000);
   }
   delay(1000);
+
+  // Dans setup(), ajouter temporairement :
+  Serial.print("Firmware: ");
+  Serial.println(WiFi.firmwareVersion());
 }
 
 void MQTTCommunication::setupInitialMQTT(){
@@ -64,7 +71,10 @@ void MQTTCommunication::setupInitialMQTT(){
   Serial.print("Client ID MQTT: "); Serial.println(clientId);
 
   mqttClient.setId(clientId);
-
+  if (_ssl) {
+    Serial.println("Use TLS");
+    wifiSSLClient.setCACert(rootCA);
+  }
   mqttClient.setUsernamePassword(mqtt_username, mqtt_password); // Set MQTT credentials if needed
   mqttClient.setCleanSession(false); // Keep session to receive messages sent while offline
 
@@ -73,12 +83,12 @@ void MQTTCommunication::setupInitialMQTT(){
 
 
 void MQTTCommunication::setupMQTT(){
-    Serial.println("Connecting MQTT...");
+    Serial.print("Connecting MQTT...");
     while (!mqttClient.connect(broker, port)) {
-        Serial.print("MQTT error: ");
-        Serial.println(mqttClient.connectError());
+        Serial.print(".");
         delay(2000);
     }
+    Serial.println();
     Serial.println("MQTT connection established !");
 
     String actionAdviceTopic = String(topic_location) + "/AQI-action-advice";
@@ -101,7 +111,7 @@ void MQTTCommunication::keepWiFiConnection(){
         Serial.print("Wifi status: ");
         Serial.println(WiFi.status());
         Serial.println("WiFi déconnecté, tentative de reconnexion...");
-        while (WiFi.begin(ssid, password) != WL_CONNECTED) {
+        while (WiFi.begin(WIFI_SSID, WIFI_PASSWORD) != WL_CONNECTED) {
             delay(1000);
             Serial.print(".");
         }
@@ -130,14 +140,14 @@ void MQTTCommunication::keepMqttConnection(){
 
 void MQTTCommunication::SendHumidity(unsigned long timestamp, float humidity) {
     // Set the topic to "humidity/room-1" for humidity messages
-    char humidityTopic[50];
+    char humidityTopic[100];
     snprintf(humidityTopic, sizeof(humidityTopic), "%s/humidity", topic_location);
 
-    char* payload = new char[256];
+    char payload[256];
 
     snprintf(payload,
         sizeof(payload),
-        "{\"sensor-id\":\"%s\",\"timestamp\":%d,\"humidity\":%.2f}", sensor_id, timestamp, humidity);
+        "{\"sensor-id\":\"%s\",\"timestamp\":%lu,\"humidity\":%.2f}", sensor_id, timestamp, humidity);
 
     // Publish the humidity value to the MQTT broker
     mqttClient.poll();
@@ -150,14 +160,14 @@ void MQTTCommunication::SendHumidity(unsigned long timestamp, float humidity) {
 
 void MQTTCommunication::SendTemperature(unsigned long timestamp, float temperature) {
     // Set the topic to "temperature/room-1" for temperature messages
-    char temperatureTopic[50];
+    char temperatureTopic[100];
     snprintf(temperatureTopic, sizeof(temperatureTopic), "%s/temperature", topic_location);
 
-    char* payload = new char[256];
+    char payload[256];
 
     snprintf(payload,
         sizeof(payload),
-        "{\"sensor-id\":\"%s\",\"timestamp\":%d,\"temperature\":%.2f}", sensor_id, timestamp, temperature);
+        "{\"sensor-id\":\"%s\",\"timestamp\":%lu,\"temperature\":%.2f}", sensor_id, timestamp, temperature);
     
     // Publish the temperature value to the MQTT broker
     mqttClient.poll();
@@ -170,14 +180,14 @@ void MQTTCommunication::SendTemperature(unsigned long timestamp, float temperatu
 
 void MQTTCommunication::SendPressure(unsigned long timestamp, float pressure) {
     // Set the topic to "pressure/room-1" for pressure messages
-    char pressureTopic[50];
+    char pressureTopic[100];
     snprintf(pressureTopic, sizeof(pressureTopic), "%s/pressure", topic_location);
 
-    char* payload = new char[256];
+    char payload[256];
 
     snprintf(payload,
         sizeof(payload),
-        "{\"sensor-id\":\"%s\",\"timestamp\":%d,\"pressure\":%.2f}", sensor_id, timestamp, pressure);
+        "{\"sensor-id\":\"%s\",\"timestamp\":%lu,\"pressure\":%.2f}", sensor_id, timestamp, pressure);
     
 
     // Publish the pressure value to the MQTT broker
@@ -191,14 +201,14 @@ void MQTTCommunication::SendPressure(unsigned long timestamp, float pressure) {
 
 void MQTTCommunication::SendAirQuality(unsigned long timestamp, int air_quality, int air_quality_category) {
     // Set the topic to "cesi-strasbourg/room-1" for air quality messages
-    char airQualityTopic[50];
+    char airQualityTopic[100];
     snprintf(airQualityTopic, sizeof(airQualityTopic), "%s/airquality", topic_location);
 
-    char* payload = new char[256];
+    char payload[256];
 
     snprintf(payload,
         sizeof(payload),
-        "{\"sensor-id\":\"%s\",\"timestamp\":%d,\"airquality\":%.2f,\"airqualitycategory\":%d}", sensor_id, timestamp, air_quality, air_quality_category);
+        "{\"sensor-id\":\"%s\",\"timestamp\":%lu,\"airquality\":%d,\"airqualitycategory\":%d}", sensor_id, timestamp, air_quality, air_quality_category);
     
     // Publish the air quality value to the MQTT broker
     mqttClient.poll();
@@ -229,7 +239,7 @@ void MQTTCommunication::displayDataFrames(unsigned long timestamp, BmeValues bme
     
     snprintf(airQualityTopic, sizeof(airQualityTopic), "%s/airquality", topic_location);
 
-    char* payload = new char[500];
+    char payload[500];
 
     snprintf(payload,
         sizeof(payload),
@@ -243,5 +253,5 @@ void MQTTCommunication::displayDataFrames(unsigned long timestamp, BmeValues bme
         sensor_id, timestamp, air_quality_value, air_quality_category);
 
     
-    Serial.print(payload);
+    Serial.println(payload);
 }

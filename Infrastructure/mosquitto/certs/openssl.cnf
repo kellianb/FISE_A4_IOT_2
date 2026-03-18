@@ -12,7 +12,7 @@ CN = localhost
 subjectAltName = @alt_names
 
 [alt_names]
-IP.1 = 192.168.0.25 # ip réseau CESI IoT 
-IP.2 = 172.20.10.3 # ip réseau partage de co
+IP.1 = 192.168.0.25
+IP.2 = 172.20.10.3
 IP.3 = 127.0.0.1
 DNS.1 = localhost

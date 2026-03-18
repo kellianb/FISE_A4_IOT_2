@@ -4,11 +4,12 @@
 constexpr int buzzer_pin = 8;
 
 // WiFi
-constexpr const char* ssid = "iPhone de Florian";//"CESI_Iot";
-constexpr const char* password = "Florian18.?!zgi97F";//"#RO_i0t.n3t";
+#define WIFI_SSID       "iPhone de Florian" // "CESI_Iot"
+#define WIFI_PASSWORD   "Florian18.?!zgi97F" // "#RO_i0t.n3t"
+#define LOCAL_IP        172,20,10,10 // 192,168,0,28
 
 // MQTT
-constexpr const char* broker = "172.20.10.3"; //"192.168.0.25";
+constexpr const char* broker = "172.20.10.3"; // "192.168.0.25";
 constexpr const int port = 8883;
 
 constexpr const char* sensor_id = "arduino-room-1";
@@ -19,7 +20,7 @@ constexpr const char* topic_location = "cesi-strasbourg/building-2/room-201/air-
 
 constexpr const uint8_t sender_mac_adress[8] = {0x00, 0x13, 0xA2, 0x00, 0x42, 0x24, 0xE4, 0x13};
 
-constexpr int stdAirQualityVoltage = 30; //Set correct value after initialisation
+constexpr int stdAirQualityVoltage = 25; //Set correct value after initialisation
 
 constexpr int airQualitySensorPin = 0;
 
