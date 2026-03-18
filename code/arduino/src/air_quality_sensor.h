@@ -23,7 +23,7 @@ class AirQualitySensor {
     int  _currentVoltage;
     int  _lastVoltage;
 
-    int getRatio(int avgVoltage);
+    float getRatio(int avgVoltage);
 };
 
 #endif // __AIR_QUALITY_SENSOR_H__

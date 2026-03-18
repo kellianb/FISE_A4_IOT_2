@@ -113,7 +113,6 @@ void loop() {
   avgDataCount(&v, &air_quality);
 
   // Check statement of air quality
-  Serial.println(air_quality);
   int statement = air_quality_sensor.getStatement(air_quality);
 
   // Send MQTT on new statement and alert if quality is very bad (force signal)

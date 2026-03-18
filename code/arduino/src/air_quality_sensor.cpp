@@ -36,13 +36,13 @@ int AirQualitySensor::getStatement(int voltage) {
   _lastVoltage = _currentVoltage;
   _currentVoltage = voltage;
 
-  int ratio = AirQualitySensor::getRatio(_currentVoltage);
+  float ratio = AirQualitySensor::getRatio(_currentVoltage);
 
-  if (ratio > 70) {
+  if (ratio > 70.0) {
       return AirQualitySensor::FORCE_SIGNAL;
-  } else if (ratio > 50) {
+  } else if (ratio > 50.0) {
       return AirQualitySensor::HIGH_POLLUTION;
-  } else if (ratio > 30) {
+  } else if (ratio > 30.0) {
       return AirQualitySensor::LOW_POLLUTION;
   } else {
       return AirQualitySensor::FRESH_AIR;
@@ -51,11 +51,9 @@ int AirQualitySensor::getStatement(int voltage) {
   return -1;
 }
 
-int AirQualitySensor::getRatio(int voltage){
-  //_ratio = (voltage - _stdVoltage) / _stdVoltage * 100;
-  float calcul = (voltage - _stdVoltage) / _stdVoltage * 100;
-
-  int ratio = (int)calcul;
+float AirQualitySensor::getRatio(int voltage){
+  float ratio = ((float)(voltage - _stdVoltage) / (float)_stdVoltage) * 100.0f;
+  return ratio;
 }
 
 const char* AirQualitySensor::getStatementMessage(int quality){
