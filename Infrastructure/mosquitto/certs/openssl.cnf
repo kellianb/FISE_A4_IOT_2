@@ -15,4 +15,4 @@ subjectAltName = @alt_names
 IP.1 = 192.168.0.25
 IP.2 = 172.20.10.3
 IP.3 = 127.0.0.1
-DNS.1 = localhost
+DNS.1 = mosquitto

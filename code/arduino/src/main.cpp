@@ -132,7 +132,7 @@ void loop() {
   
 
   // Send data to MQTT broker every 5 minutes - 1 minute for demo and testing
-  if (millis() - last_send_millis > 60000){
+  if (millis() - last_send_millis > 5000){
     sendMqtt(false);
   }
 

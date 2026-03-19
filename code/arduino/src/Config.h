@@ -16,7 +16,7 @@ constexpr const char* sensor_id = "arduino-room-1";
 
 constexpr const char* mqtt_username = "arduino-room-1";
 constexpr const char* mqtt_password = "!i0lmde32@.de21-21";
-constexpr const char* topic_location = "cesi-strasbourg/building-2/room-201/air-data";
+constexpr const char* topic_location = "cesi-strasbourg/building-2/room-201";
 
 constexpr const uint8_t sender_mac_adress[8] = {0x00, 0x13, 0xA2, 0x00, 0x42, 0x24, 0xE4, 0x13};
 

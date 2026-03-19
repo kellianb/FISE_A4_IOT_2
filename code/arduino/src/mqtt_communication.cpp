@@ -147,7 +147,7 @@ void MQTTCommunication::SendHumidity(unsigned long timestamp, float humidity) {
 
     snprintf(payload,
         sizeof(payload),
-        "{\"sensor-id\":\"%s\",\"timestamp\":%lu,\"humidity\":%.2f}", sensor_id, timestamp, humidity);
+        "{\"sensor-id\":\"%s\",\"timestamp\":%lu,\"value\":%.2f}", sensor_id, timestamp, humidity);
 
     // Publish the humidity value to the MQTT broker
     mqttClient.poll();
@@ -167,7 +167,7 @@ void MQTTCommunication::SendTemperature(unsigned long timestamp, float temperatu
 
     snprintf(payload,
         sizeof(payload),
-        "{\"sensor-id\":\"%s\",\"timestamp\":%lu,\"temperature\":%.2f}", sensor_id, timestamp, temperature);
+        "{\"sensor-id\":\"%s\",\"timestamp\":%lu,\"value\":%.2f}", sensor_id, timestamp, temperature);
     
     // Publish the temperature value to the MQTT broker
     mqttClient.poll();
@@ -187,7 +187,7 @@ void MQTTCommunication::SendPressure(unsigned long timestamp, float pressure) {
 
     snprintf(payload,
         sizeof(payload),
-        "{\"sensor-id\":\"%s\",\"timestamp\":%lu,\"pressure\":%.2f}", sensor_id, timestamp, pressure);
+        "{\"sensor-id\":\"%s\",\"timestamp\":%lu,\"value\":%.2f}", sensor_id, timestamp, pressure);
     
 
     // Publish the pressure value to the MQTT broker
@@ -208,7 +208,7 @@ void MQTTCommunication::SendAirQuality(unsigned long timestamp, int air_quality,
 
     snprintf(payload,
         sizeof(payload),
-        "{\"sensor-id\":\"%s\",\"timestamp\":%lu,\"airquality\":%d,\"airqualitycategory\":%d}", sensor_id, timestamp, air_quality, air_quality_category);
+        "{\"sensor-id\":\"%s\",\"timestamp\":%lu,\"value\":%d,\"category\":%d}", sensor_id, timestamp, air_quality, air_quality_category);
     
     // Publish the air quality value to the MQTT broker
     mqttClient.poll();
@@ -243,10 +243,14 @@ void MQTTCommunication::displayDataFrames(unsigned long timestamp, BmeValues bme
 
     snprintf(payload,
         sizeof(payload),
-        "{\"sensor-id\":\"%s\",\"timestamp\":%lu,\"humidity\":%.2f}\n"
-        "{\"sensor-id\":\"%s\",\"timestamp\":%lu,\"temperature\":%.2f}\n"
-        "{\"sensor-id\":\"%s\",\"timestamp\":%lu,\"pressure\":%.2f}\n"
-        "{\"sensor-id\":\"%s\",\"timestamp\":%lu,\"airquality\":%d,\"airqualitycategory\":%d}",
+        "Humidity : "
+        "{\"sensor-id\":\"%s\",\"timestamp\":%lu,\"value\":%.2f}\n"
+        "Temperature : "
+        "{\"sensor-id\":\"%s\",\"timestamp\":%lu,\"value\":%.2f}\n"
+        "Pressure : "
+        "{\"sensor-id\":\"%s\",\"timestamp\":%lu,\"value\":%.2f}\n"
+        "Air Quality : "
+        "{\"sensor-id\":\"%s\",\"timestamp\":%lu,\"value\":%d,\"category\":%d}",
         sensor_id, timestamp, bme_values.humidity,
         sensor_id, timestamp, bme_values.temperature,
         sensor_id, timestamp, bme_values.pressure,
