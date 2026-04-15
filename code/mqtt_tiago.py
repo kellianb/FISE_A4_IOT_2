@@ -65,7 +65,7 @@ def on_message(client, userdata, msg):
         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         client.connect('tiago-201c', username='pal', password='pal')
 
-        stin, stout, stderr = client.exec_command(fr"source /opt/ros/noetic/setup.bash; rostopic pub /tts/goal pal_interaction_msgs/TtsActionGoal\"{{goal: {{rawtext: {{text: '{message}', lang_id: 'fr_FR'}}}}}}\"")
+        stin, stout, stderr = client.exec_command(fr"rostopic pub /tts/goal pal_interaction_msgs/TtsActionGoal\"{{goal: {{rawtext: {{text: '{message}', lang_id: 'fr_FR'}}}}}}\"")
         sleep(1)
         client.close()
 
